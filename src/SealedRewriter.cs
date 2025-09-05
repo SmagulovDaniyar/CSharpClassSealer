@@ -47,7 +47,9 @@ public sealed class SealedRewriter(Compilation compilation) : CSharpSyntaxRewrit
         }
         catch (Exception)
         {
+            Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine($"Can't seal `{visited?.Identifier.Text}`");
+            Console.ResetColor();
             return visited;
         }
     }
@@ -62,6 +64,7 @@ public sealed class SealedRewriter(Compilation compilation) : CSharpSyntaxRewrit
         {
             if (visited is null) return visited;
             if (!CanSeal(visited, visited.Modifiers)) return visited;
+            if (visited.ClassOrStructKeyword.IsKind(SyntaxKind.StructKeyword)) return visited;
 
             RecordDeclarationSyntax sealedRecord = visited.WithModifiers(SyntaxFactory.TokenList(AddSealedSyntaxToken(visited.Modifiers)));
 
@@ -75,7 +78,9 @@ public sealed class SealedRewriter(Compilation compilation) : CSharpSyntaxRewrit
         }
         catch (Exception)
         {
+            Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine($"Can't seal `{visited?.Identifier.Text}`");
+            Console.ResetColor();
             return visited;
         }
     }
@@ -89,14 +94,24 @@ public sealed class SealedRewriter(Compilation compilation) : CSharpSyntaxRewrit
                 .WithTrailingTrivia(SyntaxFactory.Space))
             .Concat(syntaxTokens.Where(t => !AccessModifiers.Contains(t.Kind())));
 
-    private bool CanSeal(SyntaxNode syntaxNode, SyntaxTokenList syntaxTokens) =>
-        !(IsUnsealableModifier(syntaxTokens) || IsDerivedClass(syntaxNode));
+    private bool CanSeal(TypeDeclarationSyntax syntaxNode, SyntaxTokenList syntaxTokens) =>
+        !(IsUnsealableModifier(syntaxTokens) || IsDerivedClass(syntaxNode) || HasVirtualOrAbstractMembers(syntaxNode));
 
     private static bool IsUnsealableModifier(SyntaxTokenList syntaxTokens) =>
         syntaxTokens
             .Any(m => m.IsKind(SyntaxKind.SealedKeyword)
                    || m.IsKind(SyntaxKind.AbstractKeyword)
                    || m.IsKind(SyntaxKind.StaticKeyword));
+
+    private static bool HasVirtualOrAbstractMembers(TypeDeclarationSyntax typeDecl) =>
+        typeDecl.Members.Any(m =>
+            (m is MethodDeclarationSyntax method     && method.Modifiers.Any(IsVirtualOrAbstract)) ||
+            (m is PropertyDeclarationSyntax property && property.Modifiers.Any(IsVirtualOrAbstract)) ||
+            (m is EventDeclarationSyntax ev          && ev.Modifiers.Any(IsVirtualOrAbstract)) ||
+            (m is IndexerDeclarationSyntax indexer   && indexer.Modifiers.Any(IsVirtualOrAbstract)));
+
+    private static bool IsVirtualOrAbstract(SyntaxToken token) =>
+        token.IsKind(SyntaxKind.VirtualKeyword) || token.IsKind(SyntaxKind.AbstractKeyword);
 
     private bool IsDerivedClass(SyntaxNode syntaxNode) =>
         _compilation.GetSemanticModel(syntaxNode.SyntaxTree)
