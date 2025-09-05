@@ -13,6 +13,7 @@ public static class Parser
             .GetFiles(directory)
             .Concat(Directory
                 .GetDirectories(directory)
+                .Where(d => !exclude.Contains(d))
                 .SelectMany(d => Directory.GetFiles(d)))
             .Where(p => !exclude.Contains(p));
 
