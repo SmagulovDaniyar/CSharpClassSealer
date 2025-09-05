@@ -14,7 +14,7 @@ public class Program
                 Description = "Path to the root directory of the project to process"
             };
 
-            var excludeOptions = new Option<string[]>(name: "exclude", aliases: ["--exclude", "-e"])
+            var excludeOptions = new Option<string[]>(name: "--exclude")
             {
                 Description = "List of directories or files to exclude (separated by space)"
             };
@@ -30,9 +30,7 @@ public class Program
             if (string.IsNullOrWhiteSpace(path)) throw new ArgParseException("Path is required");
             if (!Directory.Exists(path)) throw new ArgParseException($"Directory not found: {path}");
 
-            Compilation compilation = Parser.CompileSyntaxTrees(
-                Parser.GetAllSyntaxTreesInDirectory(path, exclude));
-
+            Compilation compilation = Parser.CompileSyntaxTrees(Parser.GetAllSyntaxTreesInDirectory(path, exclude));
             SealedRewriter sealedRewriter = new(compilation);
 
             foreach (SyntaxTree syntaxTree in compilation.SyntaxTrees)

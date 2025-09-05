@@ -11,6 +11,6 @@ public sealed class ArgParseException(string message) : Exception(AddHelpMessage
         Environment.NewLine + "  path                Path to the root directory of the project" +
         Environment.NewLine +
         Environment.NewLine + "Options:" +
-        Environment.NewLine + "  -e, --exclude       One or more directories/files to exclude" +
+        Environment.NewLine + "  --exclude       One or more directories/files to exclude" +
         Environment.NewLine;
 }
