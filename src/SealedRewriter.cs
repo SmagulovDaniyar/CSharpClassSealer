@@ -29,16 +29,27 @@ public sealed class SealedRewriter(Compilation compilation) : CSharpSyntaxRewrit
         ++VisitedCount;
 
         ClassDeclarationSyntax? visited = (ClassDeclarationSyntax?)base.VisitClassDeclaration(node);
-        if (visited is null) return visited;
-        if (!CanSeal(visited, visited.Modifiers)) return visited;
 
-        ++SealedCount;
+        try
+        {
+            if (visited is null) return visited;
+            if (!CanSeal(visited, visited.Modifiers)) return visited;
 
-        Console.ForegroundColor = ConsoleColor.Green;
-        Console.WriteLine($"Sealed `{visited}`");
-        Console.ResetColor();
+            ClassDeclarationSyntax sealedClass = visited.WithModifiers(SyntaxFactory.TokenList(AddSealedSyntaxToken(visited.Modifiers)));
 
-        return visited.WithModifiers(SyntaxFactory.TokenList(AddSealedSyntaxToken(visited.Modifiers)));
+            ++SealedCount;
+
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine($"Sealed `{visited.Identifier.Text}`");
+            Console.ResetColor();
+
+            return sealedClass;
+        }
+        catch (Exception)
+        {
+            Console.WriteLine($"Can't seal `{visited?.Identifier.Text}`");
+            return visited;
+        }
     }
 
     public override SyntaxNode? VisitRecordDeclaration(RecordDeclarationSyntax node)
@@ -46,16 +57,27 @@ public sealed class SealedRewriter(Compilation compilation) : CSharpSyntaxRewrit
         ++VisitedCount;
 
         RecordDeclarationSyntax? visited = (RecordDeclarationSyntax?)base.VisitRecordDeclaration(node);
-        if (visited is null) return visited;
-        if (!CanSeal(visited, visited.Modifiers)) return visited;
 
-        ++SealedCount;
+        try
+        {
+            if (visited is null) return visited;
+            if (!CanSeal(visited, visited.Modifiers)) return visited;
 
-        Console.ForegroundColor = ConsoleColor.Green;
-        Console.WriteLine($"Sealed `{visited}`");
-        Console.ResetColor();
+            RecordDeclarationSyntax sealedRecord = visited.WithModifiers(SyntaxFactory.TokenList(AddSealedSyntaxToken(visited.Modifiers)));
 
-        return visited.WithModifiers(SyntaxFactory.TokenList(AddSealedSyntaxToken(visited.Modifiers)));
+            ++SealedCount;
+
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine($"Sealed `{visited.Identifier.Text}`");
+            Console.ResetColor();
+
+            return sealedRecord;
+        }
+        catch (Exception)
+        {
+            Console.WriteLine($"Can't seal `{visited?.Identifier.Text}`");
+            return visited;
+        }
     }
 
 
