@@ -41,8 +41,14 @@ public class Program
             }
 
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine($"Visited nodes: {sealedRewriter.VisitedCount}");
-            Console.WriteLine($"Sealed classes: {sealedRewriter.SealedCount}");
+            Console.WriteLine($"Visited: {sealedRewriter.VisitedCount}");
+            Console.WriteLine($"Sealed: {sealedRewriter.SealedCount}");
+            Console.WriteLine($"Unsealed: {sealedRewriter.UnsealedCount}");
+            Console.ResetColor();
+
+            Console.ForegroundColor = ConsoleColor.Red;
+            foreach (string name in sealedRewriter.Unsealed)
+                Console.WriteLine(name);
             Console.ResetColor();
         }
         catch (ArgParseException ex)

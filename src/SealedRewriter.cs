@@ -11,9 +11,12 @@ public sealed class SealedRewriter(Compilation compilation) : CSharpSyntaxRewrit
             .Distinct(SymbolEqualityComparer.Default)
             .ToHashSet(SymbolEqualityComparer.Default);
 
+    private readonly List<string> _unsealed = [];
+    public IEnumerable<string> Unsealed => _unsealed;
 
     public int VisitedCount { get; private set; } = 0;
     public int SealedCount { get; private set; } = 0;
+    public int UnsealedCount { get; private set; } = 0;
 
     public static readonly SyntaxKind[] AccessModifiers = [
         SyntaxKind.PublicKeyword,
@@ -39,17 +42,16 @@ public sealed class SealedRewriter(Compilation compilation) : CSharpSyntaxRewrit
 
             ++SealedCount;
 
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine($"Sealed `{visited.Identifier.Text}`");
-            Console.ResetColor();
-
             return sealedClass;
         }
         catch (Exception)
         {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine($"Can't seal `{visited?.Identifier.Text}`");
-            Console.ResetColor();
+            if (visited is not null)
+            {
+                ++UnsealedCount;
+                _unsealed.Add(visited.Identifier.Text);
+            }
+
             return visited;
         }
     }
@@ -70,17 +72,16 @@ public sealed class SealedRewriter(Compilation compilation) : CSharpSyntaxRewrit
 
             ++SealedCount;
 
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine($"Sealed `{visited.Identifier.Text}`");
-            Console.ResetColor();
-
             return sealedRecord;
         }
         catch (Exception)
         {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine($"Can't seal `{visited?.Identifier.Text}`");
-            Console.ResetColor();
+            if (visited is not null)
+            {
+                ++UnsealedCount;
+                _unsealed.Add(visited.Identifier.Text);
+            }
+
             return visited;
         }
     }
